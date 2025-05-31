@@ -1,30 +1,23 @@
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+print("Loading DialoGPT model...")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
+print("Model loaded successfully!")
+
 chat_history_ids = None
 
 
-@app.post("/chat")
-async def chat(request: Request):
+def generate_response(user_input: str) -> str:
+    """
+    Generate response dari user input menggunakan DialoGPT
+    """
     global chat_history_ids
-    data = await request.json()
-    user_input = data["message"]
 
     new_input_ids = tokenizer.encode(
         user_input + tokenizer.eos_token, return_tensors='pt')
+
     bot_input_ids = torch.cat([chat_history_ids, new_input_ids],
                               dim=-1) if chat_history_ids is not None else new_input_ids
 
@@ -42,5 +35,15 @@ async def chat(request: Request):
     )
 
     response = tokenizer.decode(
-        chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
-    return {"response": response}
+        chat_history_ids[:, bot_input_ids.shape[-1]:][0],
+        skip_special_tokens=True
+    )
+
+    return response.strip()
+
+
+def reset_chat_history():
+    """Reset chat history untuk mulai percakapan baru"""
+    global chat_history_ids
+    chat_history_ids = None
+    print("Chat history has been reset")

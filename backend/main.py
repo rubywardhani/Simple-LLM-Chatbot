@@ -5,7 +5,7 @@ from model_runner import generate_response, reset_chat_history
 
 app = FastAPI(
     title="Simple LLM Chatbot API",
-    description="A simple chatbot API using DialoGPT",
+    description="A simple chatbot API using rbGPT",
     version="1.0.0"
 )
 
@@ -39,7 +39,7 @@ def root():
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
     """
-    Chat endpoint untuk berkomunikasi dengan bot
+    Chat endpoint to communicate with bots
     """
     try:
         if not req.message.strip():
@@ -62,7 +62,7 @@ def chat(req: ChatRequest):
 @app.post("/reset", response_model=StatusResponse)
 def reset():
     """
-    Reset chat history untuk mulai percakapan baru
+    Reset chat history to start a new conversation
     """
     try:
         reset_chat_history()
